@@ -1,5 +1,6 @@
 package com.example.devposapp2.ui.settings;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.devposapp2.Connection;
 import com.example.devposapp2.R;
 import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
@@ -71,14 +73,16 @@ public class SettingsFragment extends Fragment {
     private Button buttonCash=null;
     private Button buttonCut=null;
     private EditText mTextIp=null;
+    private EditText mTextPort=null;
     private EditText mprintfData=null;
     private EditText mprintfLog=null;
     private Socketmanager mSockManager;
     private String mydata = null;
-
+Connection connection = new Connection();
     private Button click=null;
     private TextView data=null;
     private RequestQueue mQueue;
+int port ;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         notificationsViewModel =
@@ -90,6 +94,7 @@ public class SettingsFragment extends Fragment {
 //        buttonCash=root.findViewById(R.id.buttonCash);
 //        buttonCut=root.findViewById(R.id.buttonCut);
         mTextIp=root.findViewById(R.id.printerIp);
+        mTextPort=root.findViewById(R.id.printerPort);
 //        mprintfData=root.findViewById(R.id.printfData);
         mprintfLog=root.findViewById(R.id.printfLog);
         ButtonListener buttonListener=new ButtonListener();
@@ -106,12 +111,7 @@ public class SettingsFragment extends Fragment {
         return root;
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.main, menu);
-//        return true;
-//    }
+
     class ButtonListener implements OnClickListener{
 
         @Override
@@ -119,91 +119,44 @@ public class SettingsFragment extends Fragment {
             switch (v.getId()) {
                 case R.id.conTest:
 
-                    if (conTest(mTextIp.getText().toString())) {
+                     port = Integer.parseInt( mTextPort.getText().toString() );
+                    if (connection.conTest(mTextIp.getText().toString(),port)) {
                         PrintfLog("connected...");
-
-//                        buttonPf.setEnabled(true);
-//                        buttonCash.setEnabled(true);
-//                        buttonCut.setEnabled(true);
-//                        click.setEnabled(true);
+                        SharedPreferences sharedPreferences = getContext().getSharedPreferences("connectionFields",getContext().MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("ipAddress",mTextIp.getText().toString());
+                        editor.putString("port", mTextPort.getText().toString());
+                        editor.commit();
                     }
                     else {
                         PrintfLog("Not connected...");
-
-//                        buttonPf.setEnabled(false);
-//                        buttonCash.setEnabled(false);
-//                        buttonCut.setEnabled(false);
                     }
                     break;
                 case R.id.disConTest:
 
                     if (mSockManager.close()) {
+                        SharedPreferences sharedPreferences = getContext().getSharedPreferences("connectionFields",getContext().MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("ipAddress","");
+
+                        editor.commit();
                         PrintfLog("Disconnected...");
 
-//                        buttonPf.setEnabled(true);
-//                        buttonCash.setEnabled(true);
-//                        buttonCut.setEnabled(true);
-//                        click.setEnabled(true);
                     }else {
                         PrintfLog("connected...");
                     }
 
                     break;
-
-
-
-            }
+         }
 
         }
     }
-    public boolean conTest(String printerIp) {
-        mSockManager.mPort=9100;
-        mSockManager.mstrIp=printerIp;
-        mSockManager.threadconnect();
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (mSockManager.getIstate()) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    public boolean disConTest() {
 
-        mSockManager.close();
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (mSockManager.getIstate()) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+
     public void PrintfLog(String logString) {
         mprintfLog.setText(logString);
     }
-    public boolean PrintfData(byte[]data) {
-        mSockManager.threadconnectwrite(data);
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (mSockManager.getIstate()) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+
 
 
 

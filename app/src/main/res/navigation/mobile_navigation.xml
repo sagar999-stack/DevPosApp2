@@ -16,7 +16,7 @@
 
     <fragment
         android:id="@+id/navigation_reservations"
-        android:name="com.example.devposapp2.ui.reservations.DashboardFragment"
+        android:name="com.example.devposapp2.ui.reservations.ReservationFragment"
         android:label="@string/title_reservations"
         tools:layout="@layout/fragment_reservations" />
 

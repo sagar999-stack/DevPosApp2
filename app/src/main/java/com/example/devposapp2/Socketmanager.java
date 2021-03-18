@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Formatter;
+
 import android.content.Context;
 
 
@@ -31,13 +33,14 @@ public class Socketmanager
         new ConnectThread();
     }
 
-    public void threadconnectwrite(byte[] str)
+    public void threadconnectwrite(byte[] str, int size, int align )
     {
-        new WriteThread(str);
+        new WriteThread(str,size,align);
     }
 
     public boolean connect()
     {
+
         close();
         try
         {
@@ -54,13 +57,58 @@ public class Socketmanager
     }
 
 
-    public boolean write(byte[] out)
+    public boolean write(byte[] out, int size, int align)
     {
+        byte[] cc = new byte[]{0x1B,0x21,0x03};  // 0- normal size text
+        //byte[] cc1 = new byte[]{0x1B,0x21,0x00};  // 0- normal size text
+        byte[] bb = new byte[]{0x1B,0x21,0x08};  // 1- only bold text
+        byte[] bb2 = new byte[]{0x1B,0x21,0x20}; // 2- bold with medium text
+        byte[] bb3 = new byte[]{0x1B,0x21,0x10}; // 3- bold with large text
+       final byte[] ESC_ALIGN_LEFT = new byte[] { 0x1b, 'a', 0x00 };
+       final byte[] ESC_ALIGN_RIGHT = new byte[] { 0x1b, 'a', 0x02 };
+       final byte[] ESC_ALIGN_CENTER = new byte[] { 0x1b, 'a', 0x01 };
+        final byte[] ESC_CANCEL_BOLD = new byte[] { 0x1B, 0x45, 0 };
+        byte[] FEED_PAPER_AND_CUT = {0x1D, 0x56, 66, 0x00};
         if(PriOut!=null)
         {
             try
             {
+
+                switch (size){
+                    case 0:
+                        PriOut.write(cc);
+                        break;
+                    case 1:
+                        PriOut.write(bb);
+                        break;
+                    case 2:
+                        PriOut.write(bb2);
+                        break;
+                    case 3:
+                        PriOut.write(bb3);
+                        break;
+                }
+
+                switch (align){
+                    case 0:
+                        //left align
+                        PriOut.write(ESC_ALIGN_LEFT);
+                        break;
+                    case 1:
+                        //center align
+                        PriOut.write(ESC_ALIGN_CENTER);
+                        break;
+                    case 2:
+                        //right align
+                        PriOut.write(ESC_ALIGN_RIGHT);
+                        break;
+                    case 3:
+                        //right align
+                        PriOut.write(FEED_PAPER_AND_CUT);
+                        break;
+                }
                 PriOut.write(out);
+
                 PriOut.flush();
                 return true;
             } catch (IOException e)
@@ -112,11 +160,11 @@ public class Socketmanager
         return true;
     }
 
-    public boolean ConnectAndWrite(byte[] out)
+    public boolean ConnectAndWrite(byte[] out,int size, int align)
     {
         if(connect())
         {
-            write(out);
+            write(out,size,align);
             close();
             SetState(MESSAGE_WRITE_SUCCESS);
             return true;
@@ -132,7 +180,9 @@ public class Socketmanager
     public Socketmanager(Context context)
     {
     }
-
+    public Socketmanager()
+    {
+    }
     public void SetState(Boolean state)
     {
         iState=state;
@@ -154,16 +204,20 @@ public class Socketmanager
         }
     }
     private class WriteThread extends Thread
-    {
-        byte[] out;
-        public WriteThread(byte[] str)
+    {  byte[] out;
+       int sizeF;
+       int alignF;
+        public WriteThread(byte[] str,int size ,int align)
         {
             out=str;
+            sizeF=size;
+            alignF=align;
+
             start();
         }
         public void run()
         {
-            if(ConnectAndWrite(out))
+            if(ConnectAndWrite(out,sizeF,alignF))
             {
                 SetState(MESSAGE_WRITE_SUCCESS);
             }
