@@ -9,10 +9,12 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -20,7 +22,14 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.devposapp2.Connection;
+import com.example.devposapp2.LoginActivity;
+import com.example.devposapp2.Print;
 import com.example.devposapp2.R;
 import com.example.devposapp2.Socketmanager;
 import com.example.devposapp2.SpaceManager;
@@ -40,8 +49,10 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
     private Context context ;
     String printerIp;
     int port = 9100;
+    String resId;
     private final int SHOW_MENU = 1;
     private final int HIDE_MENU = 2;
+    private RequestQueue mQueue;
     String deliveryOrCollection;
     List<OrdersViewModel> orders;
     Connection connection = new Connection();
@@ -135,8 +146,9 @@ int len = orders.get(position).getOrderPolicy().length();
 
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             public void onClick(View v) {
-                if (connection.conTest(printerIp,port)) {
-print(position);
+                if(connection.checkInternetConnection(context)) {
+                    if (connection.conTest(printerIp, port)) {
+                        print(position);
 
 //                    String gbp = "£";
 //
@@ -191,12 +203,11 @@ print(position);
 //
 //                    }
 
-                }
-                else {
-
-
-
-
+                    } else {
+                        Toast.makeText(v.getContext(), "printer not connected.", Toast.LENGTH_LONG).show();
+                    }
+                }else {
+                    Toast.makeText(v.getContext(), "No Internet. Please check you internet connection.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -220,7 +231,7 @@ print(position);
     public  class  ViewHolder extends RecyclerView.ViewHolder implements  View.OnClickListener, PopupMenu.OnMenuItemClickListener{
         TextView firstName,date,grandTotal;
         CardView view_container;
-        ImageButton printButton;
+        Button printButton;
         ImageView leftIcon, dotMenu;
         ImageView paymentMethodIcon;
 
@@ -252,7 +263,7 @@ print(position);
         public void onClick(View v) {
 
             int postion = getAdapterPosition();
-
+            String positionStr = String.valueOf(postion);
             Intent intent = new Intent(context , OrderDetails.class);
             intent.putExtra("firstName" , orders.get(postion).getFirstName());
             intent.putExtra("address" , orders.get(postion).getCustomerAddress());
@@ -267,6 +278,13 @@ print(position);
             intent.putExtra("deliveryCharge" , orders.get(postion).getDeliveryCharge());
             intent.putExtra("grandTotall" , orders.get(postion).getGrandTotal());
             intent.putExtra("paymentMethod" , orders.get(postion).getPaymentMethod());
+            intent.putExtra("resName" , orders.get(postion).getResName());
+            intent.putExtra("offerText" , orders.get(postion).getOfferText());
+            intent.putExtra("discountText" , orders.get(postion).getDiscountText());
+            intent.putExtra("_id" , orders.get(postion).getResId());
+
+            intent.putExtra("jsonArray", orders.get(postion).getOrderedItems().toString());
+
             JSONArray orderedItems = orders.get(postion).getOrderedItems();
             int numberOfDish = orderedItems.length();
             String numberOfDishStr =String.valueOf(numberOfDish);
@@ -279,7 +297,7 @@ print(position);
                     JSONObject order_item = orderedItems.getJSONObject(i);
                     String dishName = order_item.getString("dish_name");
                     double totalPriceDishInt = order_item.getDouble("total_price");
-                    String totalPriceDish = "  £ "+String.valueOf(totalPriceDishInt)+"0";
+                    String totalPriceDish = String.valueOf(totalPriceDishInt);
                     String quantity = order_item.getString("quantity");
                     String quantityRdishName = quantity+" X "+dishName;
                     dishDetailsModel.setDishName(quantityRdishName);
@@ -335,56 +353,80 @@ print(position);
 public void print(int position){
     String gbp = "£";
 
+//    String _id = obj.getString("_id");
+    String firstName = orders.get(position).getFirstName();
+    String phoneNumber = orders.get(position).getCustomerPhoneNum();
+    String customerAddress = orders.get(position).getCustomerAddress();
+    String orderDate = orders.get(position).getOrderDate();
+    String orderTime = orders.get(position).getOrderTime();
+    String deliveryTime = orders.get(position).getDeliveryTime();
+    JSONArray orderedItems = orders.get(position).getOrderedItems();
+    String subTotal = orders.get(position).getSubTotal();
+    String discount = orders.get(position).getDiscount();
+    String serviceCharge = orders.get(position).getServiceCharge();
+    String deliveryCharge = orders.get(position).getDeliveryCharge();
+    String grandTotal = orders.get(position).getGrandTotal();
+    String order_policy = orders.get(position).getOrderPolicy();
+    String paymentMethod = orders.get(position).getPaymentMethod();
+    String resName = orders.get(position).getResName();
+    String offerText = orders.get(position).getOfferText();
+    String discountText = orders.get(position).getDiscountText();
+    String resId = orders.get(position).getResId();
 
-    if (connection.PrintfData((orders.get(position).getResName()+"\n").getBytes(),2,1)) {
-        connection.PrintfData(("17 East street\n").getBytes(),1,1);
-        connection.PrintfData(("Horsham, West Sussex, RH12 1HH\n").getBytes(),1,1);
-        connection.PrintfData((orders.get(position).getOrderDate()+"\n").getBytes(),0,1);
-        connection.PrintfData(( "\n").getBytes(),1,1);
-        connection.PrintfData(("COLLECTION\n").getBytes(),1,1);
-        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-
-        String inText = "IN:"+orders.get(position).getOrderTime();
-        String outText = "OUT:"+orders.get(position).getDeliveryTime();
-        String totalWidthInOut = "_______________________________________________";
-        String spaceInOut = spaceManager.getSpace(inText,outText,totalWidthInOut);
-        connection.PrintfData((inText+spaceInOut+outText+"\n").getBytes(),1,0);
-        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-        JSONArray orderedItems = orders.get(position).getOrderedItems();
-        for (int i = 0; i < orderedItems.length(); i++) {
-
-            try {
-                JSONObject order_item = orderedItems.getJSONObject(i);
-                String dishName = order_item.getString("dish_name");
-                double totalPriceDishInt = order_item.getInt("total_price");
-                String totalPriceDish = String.valueOf(totalPriceDishInt);
-                String totalWidth = "______________________________________________________________";
-                String space = spaceManager.getSpace(dishName,totalPriceDish,totalWidth);
-                connection.PrintfData((dishName+space+gbp+totalPriceDish+"\n").getBytes(Charset.forName("IBM00858")),0,0);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        String spaceSubTotal = spaceManager.getSpace("Sub Total"," "+orders.get(position).getSubTotal(),totalWidthInOut);
-        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-        connection.PrintfData(("Sub Total"+spaceSubTotal+gbp+orders.get(position).getSubTotal()+"\n").getBytes(Charset.forName("IBM00858")),1,0);
-        String spaceDiscount = spaceManager.getSpace("Discount"," "+orders.get(position).getDiscount(),totalWidthInOut);
-        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-        connection.PrintfData(("Discount"+spaceDiscount+gbp+orders.get(position).getDiscount()+"\n").getBytes(Charset.forName("IBM00858")),1,0);
-        String spaceGrandTotal = spaceManager.getSpace("Grand Total"," "+orders.get(position).getGrandTotal(),totalWidthInOut);
-        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-        connection.PrintfData(("Grand Total"+spaceGrandTotal+gbp+orders.get(position).getGrandTotal()+"\n").getBytes(Charset.forName("IBM00858")),1,0);
-
-
-
-       connection.PrintfData(("").getBytes(),2,3);
-    }
-    else {
-
-
-    }
+    Print print = new Print( context,resName, orderDate, orderTime, deliveryTime, orderedItems, subTotal, discount, grandTotal,offerText, printerIp,port,resId,discountText);
+    if(print.PrintOut())
+    {}
+    else
+    {}
+//    if (connection.PrintfData((orders.get(position).getResName()+"\n").getBytes(),2,1)) {
+//        connection.PrintfData(("17 East street\n").getBytes(),1,1);
+//        connection.PrintfData(("Horsham, West Sussex, RH12 1HH\n").getBytes(),1,1);
+//        connection.PrintfData((orders.get(position).getOrderDate()+"\n").getBytes(),0,1);
+//        connection.PrintfData(( "\n").getBytes(),1,1);
+//        connection.PrintfData(("COLLECTION\n").getBytes(),1,1);
+//        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//
+//        String inText = "IN:"+orders.get(position).getOrderTime();
+//        String outText = "OUT:"+orders.get(position).getDeliveryTime();
+//        String totalWidthInOut = "_______________________________________________";
+//        String spaceInOut = spaceManager.getSpace(inText,outText,totalWidthInOut);
+//        connection.PrintfData((inText+spaceInOut+outText+"\n").getBytes(),1,0);
+//        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//        JSONArray orderedItems = orders.get(position).getOrderedItems();
+//        for (int i = 0; i < orderedItems.length(); i++) {
+//
+//            try {
+//                JSONObject order_item = orderedItems.getJSONObject(i);
+//                String dishName = order_item.getString("dish_name");
+//                double totalPriceDishInt = order_item.getDouble("total_price");
+//                String totalPriceDish = String.valueOf(totalPriceDishInt);
+//                String totalWidth = "______________________________________________________________";
+//                String space = spaceManager.getSpace(dishName,totalPriceDish,totalWidth);
+//                connection.PrintfData((dishName+space+gbp+totalPriceDish+"\n").getBytes(Charset.forName("IBM00858")),0,0);
+//
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        String spaceSubTotal = spaceManager.getSpace("Sub Total"," "+orders.get(position).getSubTotal(),totalWidthInOut);
+//        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//        connection.PrintfData(("Sub Total"+spaceSubTotal+gbp+orders.get(position).getSubTotal()+"\n").getBytes(Charset.forName("IBM00858")),1,0);
+//        String spaceDiscount = spaceManager.getSpace("Discount"," "+orders.get(position).getDiscount(),totalWidthInOut);
+//        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//        connection.PrintfData(("Discount"+spaceDiscount+gbp+orders.get(position).getDiscount()+"\n").getBytes(Charset.forName("IBM00858")),1,0);
+//        String spaceGrandTotal = spaceManager.getSpace("Grand Total"," "+orders.get(position).getGrandTotal(),totalWidthInOut);
+//        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//        connection.PrintfData(("Grand Total"+spaceGrandTotal+gbp+orders.get(position).getGrandTotal()+"\n").getBytes(Charset.forName("IBM00858")),1,0);
+//
+//
+//
+//       connection.PrintfData(("").getBytes(),2,3);
+//    }
+//    else {
+//
+//
+//    }
 }
 
 

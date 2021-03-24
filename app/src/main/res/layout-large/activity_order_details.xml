@@ -4,11 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/offWhite"
     tools:context=".ui.settings.SettingsFragment">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
 
+        android:background="#BF4646"
         tools:context=".ui.orders.OrderDetails">
 
 
@@ -16,7 +19,7 @@
             android:id="@+id/header_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/firoza"
+            android:background="@color/surma"
             android:orientation="vertical"
             android:padding="10dp">
 
@@ -85,8 +88,8 @@
             android:background="@color/offWhite"
             android:orientation="vertical"
             android:paddingLeft="10dp"
-            android:paddingRight="10dp"
             android:paddingTop="5dp"
+            android:paddingRight="10dp"
             android:paddingBottom="5dp">
 
             <LinearLayout
@@ -107,6 +110,7 @@
                     android:textColor="@color/surma"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -144,8 +148,8 @@
             android:background="@color/surma"
             android:orientation="vertical"
             android:paddingLeft="10dp"
-            android:paddingRight="10dp"
             android:paddingTop="5dp"
+            android:paddingRight="10dp"
             android:paddingBottom="5dp">
 
             <TextView
@@ -166,8 +170,8 @@
             android:background="@color/gray"
             android:orientation="vertical"
             android:paddingLeft="10dp"
-            android:paddingRight="10dp"
             android:paddingTop="5dp"
+            android:paddingRight="10dp"
             android:paddingBottom="5dp">
 
             <LinearLayout
@@ -181,8 +185,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="2"
                     android:fontFamily="@font/open_sans_regular"
-                    android:text="Qty  Dish"
-                    android:textSize="18sp"
+                    android:text="Qty X Dish"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -192,7 +196,7 @@
                     android:layout_weight="9"
                     android:fontFamily="@font/open_sans_regular"
                     android:text="Price"
-                    android:textSize="18sp" />
+                    android:textSize="14sp" />
 
             </LinearLayout>
         </LinearLayout>
@@ -202,10 +206,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
 
+            android:layout_above="@+id/footer"
             android:layout_below="@+id/table_header"
-
-            android:layout_marginBottom="117dp"
-            android:background="@color/white"
+            android:background="@color/offWhite"
             android:orientation="vertical">
 
 
@@ -213,18 +216,36 @@
                 android:id="@+id/listItem"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="10dp"
+
                 android:background="@color/offWhite" />
 
         </LinearLayout>
 
 
-
         <LinearLayout
+            android:id="@+id/footer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="2px"
+                android:background="@color/nightSkyBlue" />
+
+            <TextView
+                android:id="@+id/offerText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/offWhite"
+                android:gravity="center"
+                android:text="TextView"
+                android:textColor="@color/surma"
+                android:textSize="14sp" />
+
             <LinearLayout
                 android:id="@+id/button_section"
                 android:layout_width="match_parent"
@@ -247,28 +268,28 @@
 
 
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_marginRight="5dp"
                         android:layout_weight="1"
-                        android:background="@drawable/box_button"
                         android:text="EN ROUTE"
-                        android:textSize="12sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
-                        app:backgroundTint="@color/yellow" />
+                        app:backgroundTint="@color/yellow"
+                        app:cornerRadius="0px" />
 
                     <Button
-                        android:id="@+id/button6"
+                        android:id="@+id/printButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_marginRight="5dp"
                         android:layout_weight="1"
-                        android:background="@color/surma"
                         android:drawableLeft="@drawable/print_icon"
                         android:text="PRINT ORDER"
-                        android:textSize="12sp"
+                        android:textSize="14sp"
 
                         android:textStyle="bold"
-                        app:backgroundTint="@color/surma" />
+                        app:backgroundTint="@color/surma"
+                        app:cornerRadius="0px" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -283,7 +304,8 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/open_sans_regular"
                         android:text="TextView"
-                        android:textSize="18sp" />
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/discount"
@@ -291,7 +313,8 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/open_sans_regular"
                         android:text="TextView"
-                        android:textSize="18sp" />
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/serviceCh"
@@ -299,7 +322,8 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/open_sans_regular"
                         android:text="TextView"
-                        android:textSize="18sp" />
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/deliCh"
@@ -307,7 +331,8 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/open_sans_regular"
                         android:text="TextView"
-                        android:textSize="18sp" />
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
                 </LinearLayout>
 

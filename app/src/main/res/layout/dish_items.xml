@@ -4,8 +4,8 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_width="412dp"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
 
         android:orientation="horizontal"
@@ -17,7 +17,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="8"
             android:fontFamily="@font/open_sans_regular"
-            android:text="TextView" />
+            android:text="TextView"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/priceView"
@@ -25,7 +26,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="2"
             android:fontFamily="@font/open_sans_regular"
-            android:text="TextView" />
+            android:text="TextView"
+            android:textSize="12sp" />
 
     </LinearLayout>
 

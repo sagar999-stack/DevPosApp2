@@ -70,25 +70,24 @@
             <Button
                 android:id="@+id/conTest"
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginRight="1dp"
+                android:layout_weight="1"
 
-
-                android:background="@drawable/box_button"
 
                 android:text="@string/connect"
-                app:backgroundTint="@color/firoza2" />
+                app:backgroundTint="@color/firoza2"
+                app:cornerRadius="0px" />
 
             <Button
                 android:id="@+id/disConTest"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginLeft="1dp"
                 android:layout_weight="1"
-                android:background="@drawable/box_button"
                 android:text="@string/disconnect"
-                app:backgroundTint="@color/pink" />
+                app:backgroundTint="@color/pink"
+                app:cornerRadius="0px" />
         </LinearLayout>
 
 
@@ -110,27 +109,13 @@
 <!--            android:background="#AAAAAA"/>-->
 
 
-
         <Button
-            android:id="@+id/buttonLogout"
+            android:id="@+id/buttonLogOut"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/buttonRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sign-out" />
-        <EditText
-            android:id="@+id/printfLog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-
-            android:layout_below="@+id/buttonLogout"
-
-            android:background="#AAAAAA"
-            android:focusable="false"
-            android:hint="@string/log"
-            android:singleLine="true"
-            android:textSize="14sp"
-            android:inputType="text" />
+            android:text="Log-Out"
+            app:cornerRadius="0px" />
 
         <!--        <Button-->
 <!--            android:id="@+id/buttonData"-->

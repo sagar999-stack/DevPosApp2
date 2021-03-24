@@ -1,5 +1,6 @@
 package com.example.devposapp2.ui.orders;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +33,7 @@ public class DishListAddapter extends ArrayAdapter<DishDetailsModel> {
         this.context = context;
         this.mResource= resource;
     }
+    @SuppressLint("ViewHolder")
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent){
         LayoutInflater inflater = LayoutInflater.from(context);
         convertView =inflater.inflate(mResource,parent,false);
@@ -39,7 +41,10 @@ public class DishListAddapter extends ArrayAdapter<DishDetailsModel> {
         TextView dishName = convertView.findViewById(R.id.textViewx);
         TextView price = convertView.findViewById(R.id.priceView);
         dishName.setText(getItem(position).getDishName());
-        price.setText(getItem(position).getPrice());
+        String priceStr = getItem(position).getPrice();
+        Double totalPriceDishInt = Double.valueOf(priceStr);
+        @SuppressLint("DefaultLocale") String totalPriceDishF = String.format("%.2f",totalPriceDishInt );
+        price.setText(" £ "+totalPriceDishF);
 
         return convertView;
     }

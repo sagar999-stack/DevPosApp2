@@ -22,9 +22,12 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.devposapp2.ui.orders.OrdersAdapter;
 import com.example.devposapp2.ui.orders.OrdersViewModel;
+import com.example.devposapp2.ui.settings.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -75,18 +78,14 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
-
-        SharedPreferences connectionFields = MainActivity.this.getSharedPreferences("connectionFields",MainActivity.MODE_PRIVATE);
-        printerIp= connectionFields.getString("ipAddress","data not found");
-        String  portStr= connectionFields.getString("port","data not found");
-        if(portStr=="data not found"){
-            Toast.makeText(this,"get port",Toast.LENGTH_LONG).show();
-        }else{
-            port = Integer.parseInt(portStr);
-        }
-
-        SharedPreferences loginInfo = this.getSharedPreferences("loginInfo", this.MODE_PRIVATE);
-        resId = loginInfo.getString("resId", "data not found");
+        t1=new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    t1.setLanguage(Locale.UK);
+                }
+            }
+        });
         Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
 
 // Set up the network to use HttpURLConnection as the HTTP client.
@@ -100,16 +99,32 @@ public class MainActivity extends AppCompatActivity {
 
 // Start the queue
         mQueue.start();
+        SharedPreferences connectionFields = MainActivity.this.getSharedPreferences("connectionFields",MainActivity.MODE_PRIVATE);
+
+            printerIp= connectionFields.getString("ipAddress","data not found");
+            String  portStr= connectionFields.getString("port","data not found");
+            if(portStr=="data not found"){
 
 
-        t1=new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if(status != TextToSpeech.ERROR) {
-                    t1.setLanguage(Locale.UK);
-                }
+//                SettingsFragment settingsFragment = new SettingsFragment();
+//                FragmentManager manager = getSupportFragmentManager();
+//                FragmentTransaction transaction = manager.beginTransaction();
+//                transaction.replace(R.id.nav_host_fragment,settingsFragment);
+//                transaction.commit();
+            }else{
+                port = Integer.parseInt(portStr);
             }
-        });
+//            if(printerIp=="data not found"){
+//                Toast.makeText(this,"get port",Toast.LENGTH_LONG).show();
+//            }else{
+//                port = Integer.parseInt(portStr);
+//            }
+
+            SharedPreferences loginInfo = this.getSharedPreferences("loginInfo", this.MODE_PRIVATE);
+            resId = loginInfo.getString("resId", "data not found");
+            if(resId =="data not found"){
+                sendToLogin(null);
+            }else{
 
 
 
@@ -117,46 +132,71 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-             thread1 = new Thread(){
-                @Override
-                public  void  run(){
-                    while (!interrupted()){
-                        try {
 
-                            Thread.sleep(10000);
-                            SharedPreferences connectionFields = MainActivity.this.getSharedPreferences("connectionFields",MainActivity.MODE_PRIVATE);
-                            printerIp= connectionFields.getString("ipAddress","data not found");
-                            String  portStr= connectionFields.getString("port","data not found");
-                            if(portStr=="data not found"){
-                            }else{
-                                port = Integer.parseInt(portStr);
+                thread1 = new Thread(){
+                    @Override
+                    public  void  run(){
+                        while (!interrupted()){
+                            try {
+
+
+                                SharedPreferences connectionFields = MainActivity.this.getSharedPreferences("connectionFields",MainActivity.MODE_PRIVATE);
+                                printerIp= connectionFields.getString("ipAddress","data not found");
+                                String  portStr= connectionFields.getString("port","data not found");
+                                SharedPreferences loginInfo = MainActivity.this.getSharedPreferences("loginInfo", MainActivity.MODE_PRIVATE);
+                                resId = loginInfo.getString("resId", "data not found");
+                                if(resId =="data not found"){
+
+
+                                }else{
+                                    if(portStr=="data not found"){
+                                    }else{
+                                        port = Integer.parseInt(portStr);
+                                    }
+
+                                    if (connection.conTest(printerIp,port)) {
+
+                                        jsonParseAutoPrint();
+                                    }
+                                    else{
+
+                                        getNotificationWhenNotConnected();
+                                    }
+                                }
+
+                                Thread.sleep(15000);
+
+
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
                             }
-                            if (connection.conTest(printerIp,port)) {
-
-
-                                jsonParseAutoPrint();
-                            }
-                            else{
-
-                                getNotificationWhenNotConnected();
-                            }
-
-
-
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
                         }
                     }
-                }
-            };
+                };
 
 
-            thread1.start();
+                thread1.start();
+            }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
     }
+    public void sendToLogin(View view) {
+        Intent intent = new Intent(this, LoginActivity.class);
 
+        startActivity(intent);
+    }
     public void jsonParseAutoPrint() {
 
 
@@ -180,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
                                 int printingStatusInt = Integer.parseInt(printingStatus);
                                 String _id = obj.getString("_id");
                                 String firstName = customerInfo.getString("first_name");
+
                                 String phoneNumber = customerInfo.getString("mobile_no");
                                 String address1 = customerInfo.getString("address1");
                                 String address2 = customerInfo.getString("address2");
@@ -198,74 +239,88 @@ public class MainActivity extends AppCompatActivity {
                                 String order_policy = obj.getString("order_policy");
                                 String paymentMethod = obj.getString("payment_method");
                                 String resName = obj.getString("restaurant_name");
+                                String offerText = obj.getString("offer_text");
+                                String discountText = obj.getString("discount_text");
                                 boolean printed = false;
 
+Print print = new Print(MainActivity.this, resName, orderDate, orderTime, deliveryTime, orderedItems, subTotal, discount, grandTotal,offerText, printerIp,port,_id,discountText);
 
+if(print.PrintOut())
+{
 
-                                if (connection.conTest(printerIp,port)) {
+    updateStatus(_id);
+    t1.speak("You have "+numOfOrdersStr+" new order. ", TextToSpeech.QUEUE_FLUSH, null);
 
+}
+else
+{
+    t1.speak("printer disconnected.", TextToSpeech.QUEUE_FLUSH, null);
+}
 
-                                    String gbp = "£";
-
-
-                                    if (connection.PrintfData((resName+"\n").getBytes(),2,1)) {
-                                        connection.PrintfData(("17 East street\n").getBytes(),1,1);
-                                        connection.PrintfData(("Horsham, West Sussex, RH12 1HH\n").getBytes(),1,1);
-                                        connection.PrintfData((orderDate+"\n").getBytes(),0,1);
-                                        connection.PrintfData(( "\n").getBytes(),1,1);
-                                        connection.PrintfData(("COLLECTION\n").getBytes(),1,1);
-                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-
-                                        String inText = "IN:"+orderTime;
-                                        String outText = "OUT:"+deliveryTime;
-                                        String totalWidthInOut = "_______________________________________________";
-                                        String spaceInOut = spaceManager.getSpace(inText,outText,totalWidthInOut);
-                                        connection.PrintfData((inText+spaceInOut+outText+"\n").getBytes(),1,0);
-                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-
-                                        for (int i = 0; i < orderedItems.length(); i++) {
-
-                                            try {
-                                                JSONObject order_item = orderedItems.getJSONObject(i);
-                                                String dishName = order_item.getString("dish_name");
-                                                double totalPriceDishInt = order_item.getInt("total_price");
-                                                String totalPriceDish = String.valueOf(totalPriceDishInt);
-                                                String totalWidth = "______________________________________________________________";
-                                                String space = spaceManager.getSpace(dishName,totalPriceDish,totalWidth);
-                                                connection.PrintfData((dishName+space+gbp+totalPriceDish+"\n").getBytes(Charset.forName("IBM00858")),0,0);
-
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-
-                                        String spaceSubTotal = spaceManager.getSpace("Sub Total"," "+subTotal,totalWidthInOut);
-                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-                                        connection.PrintfData(("Sub Total"+spaceSubTotal+gbp+subTotal+"\n").getBytes(Charset.forName("IBM00858")),1,0);
-                                        String spaceDiscount = spaceManager.getSpace("Discount"," "+discount,totalWidthInOut);
-                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-                                        connection.PrintfData(("Discount"+spaceDiscount+gbp+discount+"\n").getBytes(Charset.forName("IBM00858")),1,0);
-                                        String spaceGrandTotal = spaceManager.getSpace("Grand Total"," "+grandTotal,totalWidthInOut);
-                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
-                                        connection.PrintfData(("Grand Total"+spaceGrandTotal+gbp+grandTotal+"\n").getBytes(Charset.forName("IBM00858")),1,0);
-
-
-
-                                        connection.PrintfData(("").getBytes(),2,3);
-                                        updateStatus(_id);
-                                    }
-                                    t1.speak("Receipt printed out", TextToSpeech.QUEUE_FLUSH, null);
-
-
-//                    updateList();
-
-                                }
-                                else {
-
-
-
-
-                                }
+//                                if (connection.conTest(printerIp,port)) {
+//
+//
+//                                    String gbp = "£";
+//
+//
+//                                    if (connection.PrintfData((resName+"\n").getBytes(),2,1)) {
+//                                        connection.PrintfData(("17 East street\n").getBytes(),1,1);
+//                                        connection.PrintfData(("Horsham, West Sussex, RH12 1HH\n").getBytes(),1,1);
+//                                        connection.PrintfData((orderDate+"\n").getBytes(),0,1);
+//                                        connection.PrintfData(( "\n").getBytes(),1,1);
+//                                        connection.PrintfData(("COLLECTION\n").getBytes(),1,1);
+//                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//
+//                                        String inText = "IN:"+orderTime;
+//                                        String outText = "OUT:"+deliveryTime;
+//                                        String totalWidthInOut = "_______________________________________________";
+//                                        String spaceInOut = spaceManager.getSpace(inText,outText,totalWidthInOut);
+//                                        connection.PrintfData((inText+spaceInOut+outText+"\n").getBytes(),1,0);
+//                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//
+//                                        for (int i = 0; i < orderedItems.length(); i++) {
+//
+//                                            try {
+//                                                JSONObject order_item = orderedItems.getJSONObject(i);
+//                                                String dishName = order_item.getString("dish_name");
+//                                                double totalPriceDishInt = order_item.getInt("total_price");
+//                                                String totalPriceDish = String.valueOf(totalPriceDishInt);
+//                                                String totalWidth = "______________________________________________________________";
+//                                                String space = spaceManager.getSpace(dishName,totalPriceDish,totalWidth);
+//                                                connection.PrintfData((dishName+space+gbp+totalPriceDish+"\n").getBytes(Charset.forName("IBM00858")),0,0);
+//
+//                                            } catch (JSONException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                        }
+//
+//                                        String spaceSubTotal = spaceManager.getSpace("Sub Total"," "+subTotal,totalWidthInOut);
+//                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//                                        connection.PrintfData(("Sub Total"+spaceSubTotal+gbp+subTotal+"\n").getBytes(Charset.forName("IBM00858")),1,0);
+//                                        String spaceDiscount = spaceManager.getSpace("Discount"," "+discount,totalWidthInOut);
+//                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//                                        connection.PrintfData(("Discount"+spaceDiscount+gbp+discount+"\n").getBytes(Charset.forName("IBM00858")),1,0);
+//                                        String spaceGrandTotal = spaceManager.getSpace("Grand Total"," "+grandTotal,totalWidthInOut);
+//                                        connection.PrintfData(("-----------------------------------------------\n").getBytes(),1,0);
+//                                        connection.PrintfData(("Grand Total"+spaceGrandTotal+gbp+grandTotal+"\n").getBytes(Charset.forName("IBM00858")),1,0);
+//
+//
+//
+//                                        connection.PrintfData(("").getBytes(),2,3);
+//                                        updateStatus(_id);
+//                                    }
+//                                    t1.speak("Receipt printed out", TextToSpeech.QUEUE_FLUSH, null);
+//
+//
+////                    updateList();
+//
+//                                }
+//                                else {
+//
+//
+//
+//
+//                                }
 
 //
 
@@ -353,4 +408,6 @@ public class MainActivity extends AppCompatActivity {
 
         mQueue.add(jsonObjectRequest);
     }
+
+
 }

@@ -1,5 +1,6 @@
 package com.example.devposapp2.ui.settings;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.devposapp2.Connection;
+import com.example.devposapp2.LoginActivity;
+import com.example.devposapp2.MainActivity;
 import com.example.devposapp2.R;
 import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
@@ -42,6 +45,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.collection.ArraySet;
@@ -69,7 +73,7 @@ public class SettingsFragment extends Fragment {
     private WebView mWebView;
     private Button buttonCon=null;
     private Button buttonDisCon=null;
-    private Button buttonPf=null;
+    private Button buttonLogOut=null;
     private Button buttonCash=null;
     private Button buttonCut=null;
     private EditText mTextIp=null;
@@ -90,16 +94,18 @@ int port ;
         View root = inflater.inflate(R.layout.fragment_settings, container, false);
         buttonCon=root.findViewById(R.id.conTest);
         buttonDisCon=root.findViewById(R.id.disConTest);
+        buttonLogOut=root.findViewById(R.id.buttonLogOut);
 //        buttonPf=root.findViewById(R.id.printf);
 //        buttonCash=root.findViewById(R.id.buttonCash);
 //        buttonCut=root.findViewById(R.id.buttonCut);
         mTextIp=root.findViewById(R.id.printerIp);
         mTextPort=root.findViewById(R.id.printerPort);
 //        mprintfData=root.findViewById(R.id.printfData);
-        mprintfLog=root.findViewById(R.id.printfLog);
+
         ButtonListener buttonListener=new ButtonListener();
         buttonCon.setOnClickListener(buttonListener);
         buttonDisCon.setOnClickListener(buttonListener);
+        buttonLogOut.setOnClickListener(buttonListener);
 //        buttonPf.setOnClickListener(buttonListener);
 //        buttonCash.setOnClickListener(buttonListener);
 //        buttonCut.setOnClickListener(buttonListener);
@@ -120,16 +126,21 @@ int port ;
                 case R.id.conTest:
 
                      port = Integer.parseInt( mTextPort.getText().toString() );
-                    if (connection.conTest(mTextIp.getText().toString(),port)) {
-                        PrintfLog("connected...");
-                        SharedPreferences sharedPreferences = getContext().getSharedPreferences("connectionFields",getContext().MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("ipAddress",mTextIp.getText().toString());
-                        editor.putString("port", mTextPort.getText().toString());
-                        editor.commit();
+                    if(connection.checkInternetConnection(getContext())) {
+                        if (connection.conTest(mTextIp.getText().toString(), port)) {
+
+                            Toast.makeText(getContext(), "Connected", Toast.LENGTH_LONG).show();
+                            SharedPreferences sharedPreferences = getContext().getSharedPreferences("connectionFields", getContext().MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("ipAddress", mTextIp.getText().toString());
+                            editor.putString("port", mTextPort.getText().toString());
+                            editor.commit();
+                        } else {
+                            Toast.makeText(getContext(), "Not connected. Please check your printer connection.", Toast.LENGTH_LONG).show();
+                        }
                     }
                     else {
-                        PrintfLog("Not connected...");
+                        Toast.makeText(getContext(), "No Internet. Please check your Internet connection.", Toast.LENGTH_LONG).show();
                     }
                     break;
                 case R.id.disConTest:
@@ -140,10 +151,35 @@ int port ;
                         editor.putString("ipAddress","");
 
                         editor.commit();
-                        PrintfLog("Disconnected...");
+                        Toast.makeText(getContext(),"Disconnected",Toast.LENGTH_LONG).show();
 
                     }else {
-                        PrintfLog("connected...");
+                        Toast.makeText(getContext(),"Connected.",Toast.LENGTH_LONG).show();
+                    }
+
+                    break;
+                case R.id.buttonLogOut:
+                    SharedPreferences loginInfo = getContext().getSharedPreferences("loginInfo", getContext().MODE_PRIVATE);
+                 String resId = loginInfo.getString("resId", "data not found");
+
+
+                    if (resId!=null) {
+                        SharedPreferences.Editor editor = loginInfo.edit();
+                        editor.putString("status",null);
+                        editor.putString("firstName",null);
+                        editor.putString("lastName",null);
+                        editor.putString("email",null);
+                        editor.putString("mobileNum",null);
+                        editor.putString("resId",null);
+                        editor.putString("userRole",null);
+                        editor.putString("token",null);
+
+                        editor.commit();
+                        Toast.makeText(getContext(),"Successfully logged out.",Toast.LENGTH_LONG).show();
+
+                        sendToLogin(null);
+                    }else {
+                        Toast.makeText(getContext(),"Still logged in.",Toast.LENGTH_LONG).show();
                     }
 
                     break;
@@ -151,11 +187,13 @@ int port ;
 
         }
     }
+    public void sendToLogin(View view) {
+        Intent intent = new Intent(getContext(), LoginActivity.class);
 
-
-    public void PrintfLog(String logString) {
-        mprintfLog.setText(logString);
+        startActivity(intent);
     }
+
+
 
 
 

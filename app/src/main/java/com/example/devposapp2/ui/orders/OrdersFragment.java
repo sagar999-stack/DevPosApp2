@@ -1,5 +1,6 @@
 package com.example.devposapp2.ui.orders;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -17,6 +18,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -37,10 +40,13 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.example.devposapp2.Connection;
+import com.example.devposapp2.LoginActivity;
 import com.example.devposapp2.LoginStatus;
+import com.example.devposapp2.MainActivity;
 import com.example.devposapp2.R;
 import com.example.devposapp2.Socketmanager;
 import com.example.devposapp2.SpaceManager;
+import com.example.devposapp2.ui.settings.SettingsFragment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -95,9 +101,18 @@ public class OrdersFragment extends Fragment {
     private Button buttonPf=null;
     private ProgressBar spinner;
     SwipeRefreshLayout swipeRefreshLayout;
+    Connection connection = new Connection();
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        SharedPreferences loginInfo = getContext().getSharedPreferences("loginInfo", getContext().MODE_PRIVATE);
+        resId = loginInfo.getString("resId", "data not found");
 
+        if(resId =="data not found"){
+
+            sendToLogin(null);
+        }else{
+
+        }
         View root = inflater.inflate(R.layout.fragment_orders, container, false);
         spinner = (ProgressBar)root.findViewById(R.id.progressBar);
         spinner.setVisibility(View.VISIBLE);
@@ -108,9 +123,12 @@ public class OrdersFragment extends Fragment {
         SharedPreferences connectionFields = getContext().getSharedPreferences("connectionFields",getContext().MODE_PRIVATE);
         printerIp= connectionFields.getString("ipAddress","data not found");
         String  portStr= connectionFields.getString("port","data not found");
-        port = Integer.parseInt(portStr);
-        SharedPreferences loginInfo = getContext().getSharedPreferences("loginInfo", getContext().MODE_PRIVATE);
-        resId = loginInfo.getString("resId", "data not found");
+        if(portStr=="data not found"){
+
+        }else{
+            port = Integer.parseInt(portStr);
+        }
+
         t1=new TextToSpeech(getContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -119,13 +137,30 @@ public class OrdersFragment extends Fragment {
                 }
             }
         });
-        allSettingsAndLoadDataAndPassToAdapter();
+        if(connection.checkInternetConnection(getContext())) {
+            allSettingsAndLoadDataAndPassToAdapter();
+        }
+        else{
+            allSettingsAndLoadDataAndPassToAdapter();
+            spinner.setVisibility(View.GONE);
+            Toast.makeText(getContext(), "No Internet. Please check your internet connection.", Toast.LENGTH_LONG).show();
+
+        }
+
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                allSettingsAndLoadDataAndPassToAdapter();
-                myadapter.notifyDataSetChanged();
-                swipeRefreshLayout.setRefreshing(false);
+                spinner.setVisibility(View.VISIBLE);
+                if(connection.checkInternetConnection(getContext())) {
+                    allSettingsAndLoadDataAndPassToAdapter();
+                    myadapter.notifyDataSetChanged();
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+                else{
+                    spinner.setVisibility(View.GONE);
+                    swipeRefreshLayout.setRefreshing(false);
+                    Toast.makeText(getContext(), "No Internet. Please check your internet connection.", Toast.LENGTH_LONG).show();
+                }
 
             }
         });
@@ -153,9 +188,13 @@ public class OrdersFragment extends Fragment {
 //            thread.start();
         return root;
     }
+    public void sendToLogin(View view) {
+        Intent intent = new Intent(getContext(), LoginActivity.class);
 
+        startActivity(intent);
+    }
 public void allSettingsAndLoadDataAndPassToAdapter(){
-    spinner.setVisibility(View.VISIBLE);
+
     orders = new ArrayList<>();
     Cache cache = new DiskBasedCache(getActivity().getCacheDir(), 1024 * 1024); // 1MB cap
 // Set up the network to use HttpURLConnection as the HTTP client.
@@ -183,7 +222,9 @@ public void allSettingsAndLoadDataAndPassToAdapter(){
             String paymentMethod,
             String orderPolicy,
             String resName,
-            boolean printed)  {
+            String offerText,
+            String resId,
+            String discountText)  {
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -203,7 +244,10 @@ public void allSettingsAndLoadDataAndPassToAdapter(){
         ordersViewModel.setPaymentMethod(paymentMethod);
         ordersViewModel.setOrderPolicy(orderPolicy);
         ordersViewModel.setOrderedItems(orderedItems);
-        ordersViewModel.setPrinted(printed);
+        ordersViewModel.setOfferText(offerText);
+        ordersViewModel.setResId(resId);
+        ordersViewModel.setDiscountText(discountText);
+
         orders.add(ordersViewModel);
 
 
@@ -225,7 +269,6 @@ public void allSettingsAndLoadDataAndPassToAdapter(){
                                     arrayLength++;
                                     try {
                                         JSONObject obj = response.getJSONObject(count);
-
                                         JSONObject customerInfo = obj.getJSONObject("customer_info");
                                         String printingStatus = obj.getString("printing_status");
                                         int printingStatusInt = Integer.parseInt(printingStatus);
@@ -249,9 +292,11 @@ public void allSettingsAndLoadDataAndPassToAdapter(){
                                         String order_policy = obj.getString("order_policy");
                                         String paymentMethod = obj.getString("payment_method");
                                         String resName = obj.getString("restaurant_name");
+                                        String offerText = obj.getString("offer_text");
+                                        String discountText = obj.getString("discount_text");
                                         boolean printed = false;
 
-                                        data(firstName,phoneNumber,customerAddress,orderDate,orderTime,deliveryTime,orderedItems,subTotal,discount,serviceCharge,deliveryCharge,grandTotal,paymentMethod,order_policy,resName,printed);
+                                        data(firstName,phoneNumber,customerAddress,orderDate,orderTime,deliveryTime,orderedItems,subTotal,discount,serviceCharge,deliveryCharge,grandTotal,paymentMethod,order_policy,resName,offerText,_id,discountText);
 
                                     } catch (JSONException e) {
                                         e.printStackTrace();

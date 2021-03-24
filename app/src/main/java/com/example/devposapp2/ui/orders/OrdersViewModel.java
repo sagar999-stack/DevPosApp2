@@ -24,8 +24,34 @@ public class OrdersViewModel  {
   public String orderPolicy;
   public boolean printed;
   public  boolean menu;
+  public String offerText;
 
+    public String getDiscountText() {
+        return discountText;
+    }
 
+    public void setDiscountText(String discountText) {
+        this.discountText = discountText;
+    }
+
+    public String discountText;
+  public  String resId;
+
+    public String getResId() {
+        return resId;
+    }
+
+    public void setResId(String resId) {
+        this.resId = resId;
+    }
+
+    public String getOfferText() {
+        return offerText;
+    }
+
+    public void setOfferText(String offerText) {
+        this.offerText = offerText;
+    }
 
     public OrdersViewModel() {
 

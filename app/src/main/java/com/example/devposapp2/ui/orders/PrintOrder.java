@@ -71,35 +71,4 @@ public class PrintOrder {
 
     }
 
-
-    public boolean conTest(String printerIp) {
-        mSockManager.mPort=9100;
-        mSockManager.mstrIp=printerIp;
-        mSockManager.threadconnect();
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (mSockManager.getIstate()) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    public boolean PrintfData(byte[]data, int size, int align ) {
-        mSockManager.threadconnectwrite(data,size,align);
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (mSockManager.getIstate()) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
 }
