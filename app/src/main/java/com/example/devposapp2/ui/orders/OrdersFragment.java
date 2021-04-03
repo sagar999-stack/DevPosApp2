@@ -100,6 +100,7 @@ public class OrdersFragment extends Fragment {
     TextToSpeech t1;
     private Button buttonPf=null;
     private ProgressBar spinner;
+    private TextView noData;
     SwipeRefreshLayout swipeRefreshLayout;
     Connection connection = new Connection();
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -116,6 +117,7 @@ public class OrdersFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_orders, container, false);
         spinner = (ProgressBar)root.findViewById(R.id.progressBar);
         spinner.setVisibility(View.VISIBLE);
+        noData= root.findViewById(R.id.noData);
 
         recyclerView = root.findViewById(R.id.recycleView);
         swipeRefreshLayout = root.findViewById(R.id.swipeRefresh);
@@ -263,6 +265,12 @@ public void allSettingsAndLoadDataAndPassToAdapter(){
                         spinner.setVisibility(View.GONE);
                          int arrayLength=0;
                         int count = 0;
+                        if(response.length()<1){
+                            noData.setVisibility(View.VISIBLE);
+                        }
+                        else{
+                            noData.setVisibility(View.GONE);
+                        }
                         if(arrayLength<=response.length()){
                             while (count<response.length()){
                                 if(count>=arrayLength){

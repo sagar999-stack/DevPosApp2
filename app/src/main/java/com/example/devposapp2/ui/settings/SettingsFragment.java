@@ -71,9 +71,6 @@ public class SettingsFragment extends Fragment {
 
     private SettingsViewModel notificationsViewModel;
     private WebView mWebView;
-    private Button buttonCon=null;
-    private Button buttonDisCon=null;
-    private Button buttonLogOut=null;
     private Button buttonCash=null;
     private Button buttonCut=null;
     private EditText mTextIp=null;
@@ -92,9 +89,9 @@ int port ;
         notificationsViewModel =
                 new ViewModelProvider(this).get(SettingsViewModel.class);
         View root = inflater.inflate(R.layout.fragment_settings, container, false);
-        buttonCon=root.findViewById(R.id.conTest);
-        buttonDisCon=root.findViewById(R.id.disConTest);
-        buttonLogOut=root.findViewById(R.id.buttonLogOut);
+        Button buttonCon = root.findViewById(R.id.conTest);
+        Button buttonDisCon = root.findViewById(R.id.disConTest);
+        Button buttonLogOut = root.findViewById(R.id.buttonLogOut);
 //        buttonPf=root.findViewById(R.id.printf);
 //        buttonCash=root.findViewById(R.id.buttonCash);
 //        buttonCut=root.findViewById(R.id.buttonCut);
